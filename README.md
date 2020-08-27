@@ -44,8 +44,22 @@ where `N` represents the size of the input vector (ranging from `2^[0,...,14]`),
 and `tI` is the average elapsed time for testing with `n` and `libnameI`.
 Currently, the header (first line of output) will be the following:
 ```
-N,adept,stan,fastad,double
+N,adept,adolc,cppad,sacado,stan,fastad,double
 ```
+
+We wrote a Python script in `analyze` called `analyze.py` that 
+scrapes `build/benchmark` directory for all `_eval.csv` files,
+plots the results, and saves the plots in `docs/figs`.
+The user can directly follow these commands:
+```
+cd analyze
+python3 analyze.py
+```
+or use the prepared `run.sh` shell script:
+```
+./run.sh
+```
+which will setup, build, run benchmark, and analyze.
 
 ## References
 - [STAN math](https://arxiv.org/pdf/1509.07164.pdf)
