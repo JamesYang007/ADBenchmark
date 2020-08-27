@@ -6,6 +6,7 @@ cd lib
 adept="adept-2.0.8"
 adolc="adolc"
 cppad="cppad"
+sacado="Trilinos"
 stan="stan-dev-math"
 fastad="FastAD"
 
