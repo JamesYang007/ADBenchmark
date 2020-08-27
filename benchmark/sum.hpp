@@ -1,6 +1,10 @@
 #pragma once
 #include <string>
+#include <counting_iterator.hpp>
 #include <Eigen/Dense>
+#include <adept.h>
+#include <adept_arrays.h>
+#include <stan/math/rev/fun/sum.hpp>
 #include <fastad>
 
 namespace adb {
@@ -17,10 +21,25 @@ struct SumFunc
         return sum_x;
     }
 
+    adept::aReal operator()(const adept::aVector& x) const
+    {
+        return adept::sum(x);
+    }
+
+    auto operator()(const Eigen::Matrix<stan::math::var, Eigen::Dynamic, 1>& x) const
+    {
+        return stan::math::sum(x);
+    }
+
     template <class T, class S>
-    auto operator()(const ad::VarView<T, S>& x) const
+    auto operator()(ad::VarView<T, S>& x) const
     {
         return ad::sum(x);
+    }
+
+    double operator()(const Eigen::VectorXd& x) const
+    {
+        return x.sum();
     }
 
     std::string name() const { return "sum"; }

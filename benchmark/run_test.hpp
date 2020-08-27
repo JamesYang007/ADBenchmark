@@ -6,23 +6,17 @@
 #include <stopwatch.hpp>
 #include <gradient.hpp>
 #include <Eigen/Dense>
+#include <stan/math.hpp>
 #include <adept.h>
 
 namespace adb {
 
-// Benchmark invoking f and return the average time over n_iter iterations.
-template <class F>
-inline double benchmark(F&& f, size_t n_iter)
+inline void check_gradient(const Eigen::VectorXd& actual,
+                           const Eigen::VectorXd& expected)
 {
-    StopWatch<> sw;
-    double elapsed = 0;
-    for (int i = 0; i < n_iter; ++i) {
-        sw.start();
-        f();
-        sw.stop();
-        elapsed += sw.elapsed();
+    if (!(actual.array() == expected.array()).all()) {
+        std::cerr << "WARNING: result not identitcal" << std::endl;
     }
-    return elapsed / n_iter;
 }
 
 // Computes average time for differentiating f for each library
@@ -34,15 +28,76 @@ inline void time_gradients(const F& f,
 {
     int N = x.size();
     Eigen::VectorXd grad_fx(N);
+    Eigen::VectorXd expected(N);
+    grad_fx.setZero();
     double fx = 0;
+    StopWatch<> sw;
 
     os << N;
 
     // Adept
-    os << ',' << benchmark([&]() { adept_gradient(f, x, fx, grad_fx); }, n_iter);
+    sw.start();
+    for (int i = 0; i < n_iter; ++i) {
+        adept_gradient(f, x, fx, grad_fx);
+    }
+    sw.stop();
+    os << ',' << sw.elapsed() / n_iter;
+
+    expected = grad_fx;  // save gradient to compare with others
+
+    // ADOLC
+    sw.start();
+    for (int i = 0; i < n_iter; ++i) {
+        adolc_gradient(f, x, fx, grad_fx);
+    }
+    sw.stop();
+    check_gradient(grad_fx, expected);
+    os << ',' << sw.elapsed() / n_iter;
+
+    // CppAD
+    sw.start();
+    for (int i = 0; i < n_iter; ++i) {
+        cppad_gradient(f, x, fx, grad_fx);
+    }
+    sw.stop();
+    check_gradient(grad_fx, expected);
+    os << ',' << sw.elapsed() / n_iter;
+
+    // Sacado
+    sw.start();
+    for (int i = 0; i < n_iter; ++i) {
+        sacado_gradient(f, x, fx, grad_fx);
+    }
+    sw.stop();
+    check_gradient(grad_fx, expected);
+    os << ',' << sw.elapsed() / n_iter;
+
+    // STAN
+    sw.start();
+    for (int i = 0; i < n_iter; ++i) {
+        stan::math::gradient(f, x, fx, grad_fx);
+    }
+    sw.stop();
+    check_gradient(grad_fx, expected);
+    os << ',' << sw.elapsed() / n_iter;
 
     // FastAD
-    os << ',' << benchmark([&]() { fastad_gradient(f, x, fx, grad_fx); }, n_iter);
+    sw.start();
+    for (int i = 0; i < n_iter; ++i) {
+        fastad_gradient(f, x, fx, grad_fx);
+    }
+    sw.stop();
+    check_gradient(grad_fx, expected);
+    os << ',' << sw.elapsed() / n_iter;
+
+    // double (baseline)
+    sw.start();
+    for (int i = 0; i < n_iter; ++i) {
+        double_gradient(f, x, fx, grad_fx);
+    }
+    sw.stop();
+    std::cout << "(print double value to prevent-inline): " << fx << std::endl;
+    os << ',' << sw.elapsed() / n_iter;
 
     os << '\n';
 }
