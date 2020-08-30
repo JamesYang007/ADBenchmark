@@ -13,20 +13,19 @@ namespace adb {
 
 template <class F>
 inline void adept_gradient(const F& f,
-                           const Eigen::VectorXd& x,
+                           Eigen::VectorXd& x,
                            double& fx,
                            Eigen::VectorXd& grad_fx) 
 {
     adept::aVector x_ad(x.size());
     for (int i = 0; i < x.size(); ++i) {
-        x_ad[i] = x[i];
+        x_ad[i] = x(i);
     }
     adept::active_stack()->new_recording();
     adept::aReal fx_ad = f(x_ad);
     fx = fx_ad.value();
     fx_ad.set_gradient(1.0);
     adept::active_stack()->compute_adjoint();
-    grad_fx.resize(x_ad.size());
     for (int i = 0; i < x_ad.size(); ++i) {
         grad_fx(i) = x_ad[i].get_gradient();
     }
@@ -80,7 +79,6 @@ void sacado_gradient(const F& f,
     }
     fx = f(x_ad).val();
     Sacado::Rad::ADvar<double>::Gradcomp();
-    grad_fx.resize(x.size());
     for (int n = 0; n < x.size(); ++n) {
         grad_fx(n) = x_ad(n).adj();
     }
@@ -88,24 +86,20 @@ void sacado_gradient(const F& f,
 
 // STAN already provides their own gradient function
 
-template <class F>
-inline void fastad_gradient(const F& f,
-                            Eigen::VectorXd& x,
+template <class ExprType>
+inline void fastad_gradient(ExprType& expr,
                             double& fx,
                             Eigen::VectorXd& grad_fx) 
 {
     grad_fx.setZero();
-    ad::VarView<double, ad::vec> x_ad(x.data(),
-                                      grad_fx.data(),
-                                      x.size());
-    fx = ad::autodiff(ad::bind(f(x_ad)));
+    fx = ad::autodiff(expr);
 }
 
 template <class F>
 inline void double_gradient(const F& f,
                             const Eigen::VectorXd& x,
                             double& fx,
-                            Eigen::VectorXd& grad_fx)
+                            Eigen::VectorXd&)
 {
     fx = f(x);
 }

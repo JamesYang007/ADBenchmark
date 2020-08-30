@@ -12,10 +12,14 @@
 namespace adb {
 
 inline void check_gradient(const Eigen::VectorXd& actual,
-                           const Eigen::VectorXd& expected)
+                           const Eigen::VectorXd& expected,
+                           const std::string& name)
 {
-    if (!(actual.array() == expected.array()).all()) {
-        std::cerr << "WARNING: result not identitcal" << std::endl;
+    constexpr double eps = 1e-15;
+    auto diff = (actual.array() - expected.array()).abs();
+    if ((actual.array() != expected.array()).any()) {
+        std::cerr << "WARNING (" << name << "): result not identical" << std::endl;
+        std::cerr << "Max abs diff: " << diff.maxCoeff() << std::endl;
     }
 }
 
@@ -28,49 +32,51 @@ inline void time_gradients(const F& f,
 {
     int N = x.size();
     Eigen::VectorXd grad_fx(N);
-    Eigen::VectorXd expected(N);
     grad_fx.setZero();
     double fx = 0;
     StopWatch<> sw;
 
+    // save gradient to compare with others
+    Eigen::VectorXd expected(N);
+    f.derivative(x, expected);
+
     os << N;
 
-    // Adept
-    sw.start();
-    for (int i = 0; i < n_iter; ++i) {
-        adept_gradient(f, x, fx, grad_fx);
-    }
-    sw.stop();
-    os << ',' << sw.elapsed() / n_iter;
+    //// Adept
+    //sw.start();
+    //for (int i = 0; i < n_iter; ++i) {
+    //    adept_gradient(f, x, fx, grad_fx);
+    //}
+    //sw.stop();
+    //check_gradient(grad_fx, expected, "adept");
+    //os << ',' << sw.elapsed() / n_iter;
 
-    expected = grad_fx;  // save gradient to compare with others
+    //// ADOLC
+    //sw.start();
+    //for (int i = 0; i < n_iter; ++i) {
+    //    adolc_gradient(f, x, fx, grad_fx);
+    //}
+    //sw.stop();
+    //check_gradient(grad_fx, expected, "adolc");
+    //os << ',' << sw.elapsed() / n_iter;
 
-    // ADOLC
-    sw.start();
-    for (int i = 0; i < n_iter; ++i) {
-        adolc_gradient(f, x, fx, grad_fx);
-    }
-    sw.stop();
-    check_gradient(grad_fx, expected);
-    os << ',' << sw.elapsed() / n_iter;
+    //// CppAD
+    //sw.start();
+    //for (int i = 0; i < n_iter; ++i) {
+    //    cppad_gradient(f, x, fx, grad_fx);
+    //}
+    //sw.stop();
+    //check_gradient(grad_fx, expected, "cppad");
+    //os << ',' << sw.elapsed() / n_iter;
 
-    // CppAD
-    sw.start();
-    for (int i = 0; i < n_iter; ++i) {
-        cppad_gradient(f, x, fx, grad_fx);
-    }
-    sw.stop();
-    check_gradient(grad_fx, expected);
-    os << ',' << sw.elapsed() / n_iter;
-
-    // Sacado
-    sw.start();
-    for (int i = 0; i < n_iter; ++i) {
-        sacado_gradient(f, x, fx, grad_fx);
-    }
-    sw.stop();
-    check_gradient(grad_fx, expected);
-    os << ',' << sw.elapsed() / n_iter;
+    //// Sacado
+    //sw.start();
+    //for (int i = 0; i < n_iter; ++i) {
+    //    sacado_gradient(f, x, fx, grad_fx);
+    //}
+    //sw.stop();
+    //check_gradient(grad_fx, expected, "sacado");
+    //os << ',' << sw.elapsed() / n_iter;
 
     // STAN
     sw.start();
@@ -78,26 +84,36 @@ inline void time_gradients(const F& f,
         stan::math::gradient(f, x, fx, grad_fx);
     }
     sw.stop();
-    check_gradient(grad_fx, expected);
+    check_gradient(grad_fx, expected, "stan");
     os << ',' << sw.elapsed() / n_iter;
 
-    // FastAD
-    sw.start();
-    for (int i = 0; i < n_iter; ++i) {
-        fastad_gradient(f, x, fx, grad_fx);
-    }
-    sw.stop();
-    check_gradient(grad_fx, expected);
-    os << ',' << sw.elapsed() / n_iter;
+    //// FastAD
+    //Eigen::VectorXd val_buf;
+    //Eigen::VectorXd adj_buf;
+    //ad::VarView<double, ad::vec> fastad_x_ad(x.data(),
+    //                                         grad_fx.data(),
+    //                                         x.size());
+    //auto expr = f(fastad_x_ad);
+    //auto size_pack = expr.bind_cache_size();
+    //val_buf.resize(size_pack(0));
+    //adj_buf.resize(size_pack(1));
+    //expr.bind_cache({val_buf.data(), adj_buf.data()});
+    //sw.start();
+    //for (int i = 0; i < n_iter; ++i) {
+    //    fastad_gradient(expr, fx, grad_fx);
+    //}
+    //sw.stop();
+    //check_gradient(grad_fx, expected, "fastad");
+    //os << ',' << sw.elapsed() / n_iter;
 
-    // double (baseline)
-    sw.start();
-    for (int i = 0; i < n_iter; ++i) {
-        double_gradient(f, x, fx, grad_fx);
-    }
-    sw.stop();
-    std::cout << "(print double value to prevent-inline): " << fx << std::endl;
-    os << ',' << sw.elapsed() / n_iter;
+    //// double (baseline)
+    //sw.start();
+    //for (int i = 0; i < n_iter; ++i) {
+    //    double_gradient(f, x, fx, grad_fx);
+    //}
+    //sw.stop();
+    //std::cout << "(print double value to prevent-inline): " << fx << std::endl;
+    //os << ',' << sw.elapsed() / n_iter;
 
     os << '\n';
 }

@@ -4,56 +4,61 @@
 #include <Eigen/Dense>
 #include <adept.h>
 #include <adept_arrays.h>
-#include <stan/math/rev/fun/sum.hpp>
 #include <fastad>
 
 namespace adb {
 
-struct SumFunc
+/*
+ * Functor representing product of elements in a vector.
+ * Only fastad, adept provide vectorized notation.
+ */
+
+struct ProdFunc
 {
     template <class T>
     T operator()(const Eigen::Matrix<T, Eigen::Dynamic, 1>& x) const
     {
-        T sum_x = 0;
+        T product_x = 1;
         for (int i = 0; i < x.size(); ++i) {
-            sum_x += x(i);
+            product_x *= x(i);
         }
-        return sum_x;
+        return product_x;
     }
 
     adept::aReal operator()(const adept::aVector& x) const
     {
-        return adept::sum(x);
-    }
-
-    auto operator()(const Eigen::Matrix<stan::math::var, Eigen::Dynamic, 1>& x) const
-    {
-        return stan::math::sum(x);
+        return adept::product(x);
     }
 
     template <class T, class S>
     auto operator()(ad::VarView<T, S>& x) const
     {
-        return ad::sum(x);
+        return ad::prod(x);
     }
 
     double operator()(const Eigen::VectorXd& x) const
     {
-        return x.sum();
+        return x.prod();
     }
 
     void derivative(const Eigen::VectorXd& x,
                     Eigen::VectorXd& grad) const
     {
-        grad = Eigen::VectorXd::Ones(x.size());
+        grad = Eigen::VectorXd::NullaryExpr(x.size(),
+                [&](size_t i) { 
+                    double val = 1;
+                    for (int k = 0; k < x.size(); ++k) {
+                        if (k != i) val *= x(i);
+                    }
+                    return val;
+                });
     }
 
-    std::string name() const { return "sum"; }
+    std::string name() const { return "prod"; }
 
     void fill(Eigen::VectorXd& x) {
-        for (int i = 0; i < x.size(); ++i) {
-            x(i) = i;
-        }
+        const double val = std::pow(1e10, 1.0 / x.size());
+        x.array() = val;
     }
 };
 

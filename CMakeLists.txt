@@ -6,7 +6,7 @@ project("ADBenchmark"
 
 set(ADBENCH_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/benchmark)
 set(CMAKE_CXX_STANDARD 17)
-add_compile_options(-O3)
+add_compile_options(-O3 -march=native)
 add_definitions(
     # Same definitions used in STAN original paper
     -DNDEBUG

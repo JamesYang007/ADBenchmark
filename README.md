@@ -61,5 +61,48 @@ or use the prepared `run.sh` shell script:
 ```
 which will setup, build, run benchmark, and analyze.
 
+## Notes
+
+### ADOL-C
+
+They define what's called a "tape" which records data needed to perform AD.
+There is a way of having multiple tapes and recording on any one of them.
+User can choose which variables are independent, 
+i.e. the variables we should differentiate w.r.t., by using `operator<<=` and `operator>>=`.
+It is CRUCIAL to use `operator<<=` to indicate which variables are independent.
+They don't seem to have an equivalent `VarView` structure to simply view values,
+so this part should part of the benchmark.
+
+### STAN
+
+Memory management is based on overloading `operator new`.
+There are three "stacks": 
+one for storing the actual variable objects `vari`,
+one for storing "any object needed during autodiff and needs destructing",
+and one for storing the operations.
+FastAD is much more memory efficient since it only needs 
+the memory for value and adjoints (no need to save any other objects or operations).
+Based on looking at STAN's implementation and reading their paper,
+they allocate a pointer to a (univariate) `vari` for each such object.
+Hence, for matrix objects of size M x N, they allocate M x N chunks of bytes for value and adjoint 
+and also M x N pointers.
+FastAD rather only allocates M x N chunks of bytes for value and adjoint for intermediate expression graph, 
+which is unavoidable, and only allocates 1 pointer implicitly through `Eigen::Map` to view this entire region.
+In general, we allocate about less than 2/3 the amount allocated by STAN, which is significant,
+since pointers are 8 bytes and if value and adjoint are both 8 bytes each, STAN allocates 8 * 3 * number of elements
+and we only require allocations for value and adjoint, hence 8 * 2 * number of elements.
+In fact, some expression nodes are optimized to not allocate adjoints at all.
+All expressions that are scalar valued do not allocate adj and some special nodes such as `if_else` 
+and in certain cases for `pow<n>` (when n == 0, 1) do not allocate adj.
+
+STAN's design choice also explains why matrix multiplication has the problem of creating `N^2`-fold expression
+when using the built-in `Eigen` matrix multiplication with objects where `Scalar` type is `vari`.
+They have to allocate even more memory for `vari*` on the arena to first assign the operands for both operands,
+and also the same amount of bytes for the actual `double` values for the placeholders.
+This is extremely costly can be entirely avoided.
+Our matrix multiplication does not require any extra allocations except two `Eigen::Map`s,
+which are extremely cheap.
+
 ## References
+- [ADOL-C Manual](https://github.com/coin-or/ADOL-C/blob/master/ADOL-C/doc/adolc-manual.pdf)
 - [STAN math](https://arxiv.org/pdf/1509.07164.pdf)
