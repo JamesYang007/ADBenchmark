@@ -10,9 +10,12 @@ git clone https://github.com/JamesYang007/ADBenchmark.git
 ```
 
 Then run the setup script to install all dependencies (and their dependencies):
-- [Adept2.0.8](http://www.met.reading.ac.uk/clouds/adept/)
-- [FastAD3](https://github.com/JamesYang007/FastAD)
-- [STAN math](https://github.com/stan-dev/math)
+- [Adept 2.0.8](http://www.met.reading.ac.uk/clouds/adept/)
+- [ADOL-C 2.7.2](https://github.com/coin-or/ADOL-C)
+- [CppAD 20200000](https://coin-or.github.io/CppAD/doc/cppad.htm)
+- [Sacado 13.0.0](https://github.com/trilinos/Trilinos/tree/master/packages/sacado)
+- [FastAD 3](https://github.com/JamesYang007/FastAD)
+- [STAN math 3.3.0](https://github.com/stan-dev/math)
 
 ```
 ./setup.sh
@@ -21,6 +24,11 @@ Then run the setup script to install all dependencies (and their dependencies):
 We have not provided scripts for the following changes and we ask the users to manually make these changes:
 - Add `math::` in front of `apply` in `lib/stan-dev-math/stan/math/rev/functor/adj_jac_apply.hpp` line `513`.
   Compiling with C++17 standard raises error due to ambiguity with `std::apply`.
+- Open `benchmark/main.cpp` and comment out all tests except one that you want to test.
+  The `std::unordered_map` object stores the configuration for the run.
+  The "value" is a struct that contains the name, boolean indicating whether to run this library or not,
+  and the number of iterations it should run to average out the time.
+  Feel free to change any of these settings.
 
 To build and run benchmarks:
 ```
@@ -42,7 +50,7 @@ where `N` represents the size of the input vector (ranging from `2^[0,...,14]`),
 `libnameI` represents the `I`th library,
 `n` is a particular size of the input vector,
 and `tI` is the average elapsed time for testing with `n` and `libnameI`.
-Currently, the header (first line of output) will be the following:
+The header (first line of output) will be something like the following:
 ```
 N,adept,adolc,cppad,sacado,stan,fastad,double
 ```
@@ -77,9 +85,10 @@ so this part should part of the benchmark.
 
 Memory management is based on overloading `operator new`.
 There are three "stacks": 
-one for storing the actual variable objects `vari`,
-one for storing "any object needed during autodiff and needs destructing",
-and one for storing the operations.
+- one for storing the actual variable objects `vari`,
+- one for storing "any object needed during autodiff and needs destructing",
+- one for storing the operations.
+
 FastAD is much more memory efficient since it only needs 
 the memory for value and adjoints (no need to save any other objects or operations).
 Based on looking at STAN's implementation and reading their paper,
@@ -149,8 +158,8 @@ Hence, in terms of computation speed, it isn't as different as other examples.
 Note also that the time to AD this for FastAD vs the time for a single matrix multiplication (baseline) is 3.16.
 Since AD for matrix multiplication requires 3 (N x N) multiplications, there is about 16% overhead using FastAD vs. 
 manually evaluating the multiplication and also the partial derivatives.
-We consider sFastAD is very optimal.
 
 ## References
+- [Adept User Guide](http://www.met.reading.ac.uk/clouds/adept/adept_documentation_2.0.8.pdf)
 - [ADOL-C Manual](https://github.com/coin-or/ADOL-C/blob/master/ADOL-C/doc/adolc-manual.pdf)
 - [STAN math](https://arxiv.org/pdf/1509.07164.pdf)
