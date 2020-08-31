@@ -42,11 +42,47 @@ struct StochasticVolatilityFunc
         for (size_t i = 1; i < N; ++i) {
             h[i] += phi * (h[i-1] - mu);
         }
-        return normal_lpdf(y, 0., exp(h / 2.)) +
+        auto lp = normal_lpdf(y, 0., exp(h / 2.)) +
                 normal_lpdf(h_std, 0., 1.) +
                 cauchy_lpdf(sigma, 0., 5.) +
                 cauchy_lpdf(mu, 0., 10.) +
                 uniform_lpdf(phi, -1., 1.);
+
+#ifdef STOCHASTIC_VOLATILITY_BYTESIZE
+
+        auto stack = stan::math::ChainableStack::instance_;
+        
+        size_t vs_size = stack->var_stack_.size() *
+                         sizeof(std::decay_t<decltype(stack->var_stack_[0])>);
+        size_t vns_size = stack->var_nochain_stack_.size() *
+                          sizeof(std::decay_t<decltype(stack->var_nochain_stack_[0])>);
+        size_t vas_size = stack->var_alloc_stack_.size() *
+                          sizeof(std::decay_t<decltype(stack->var_alloc_stack_[0])>);
+        size_t malloc_size = stack->memalloc_.bytes_allocated();
+
+        std::cout << "STAN var_stack_ bytesize: " 
+                  << vs_size
+                  << std::endl;
+
+        std::cout << "STAN var_nochain_stack_ bytesize: " 
+                  << vns_size                   
+                  << std::endl;
+
+        std::cout << "STAN var_alloc_stack_ bytesize: " 
+                  << vas_size
+                  << std::endl;
+
+        std::cout << "STAN memalloc_.bytes_allocated bytesize: " 
+                  << malloc_size
+                  << std::endl;
+
+        std::cout << "STAN lower bound bytesize: " 
+                  << vs_size + vns_size + vas_size + malloc_size
+                  << std::endl;
+
+#endif
+
+        return lp;
     }
 
     // FastAD

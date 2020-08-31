@@ -17,6 +17,10 @@ add_definitions(
     -DEIGEN_MATRIXBASE_PLUGIN="stan/math/prim/eigen_plugins.h"
     -DEIGEN_ARRAYBASE_PLUGIN="stan/math/prim/eigen_plugins.h")
 
+if (STOCHASTIC_VOLATILITY_BYTESIZE)
+    add_definitions(-DSTOCHASTIC_VOLATILITY_BYTESIZE)
+endif()
+
 # Find Eigen3
 find_package(Eigen3 3.3 CONFIG REQUIRED NO_MODULE)
 message(STATUS "Found Eigen3 config at: ${EIGEN3_INCLUDE_DIR}")

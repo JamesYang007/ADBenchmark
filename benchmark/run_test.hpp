@@ -101,6 +101,7 @@ inline void time_gradients(const F& f,
         sw.stop();
         check_gradient(grad_fx, expected, stan_pack.name);
         stan_pack.time = sw.elapsed() / stan_pack.n_iter;
+
     }
 
     // FastAD
@@ -123,6 +124,26 @@ inline void time_gradients(const F& f,
         sw.stop();
         check_gradient(grad_fx, expected, fastad_pack.name);
         fastad_pack.time = sw.elapsed() / fastad_pack.n_iter;
+
+        size_t vb_size = val_buf.size() * sizeof(double);
+        size_t ab_size = adj_buf.size() * sizeof(double);
+        size_t e_size = sizeof(expr);
+
+        std::cout << "FastAD val_buf bytesize: "
+                  << vb_size
+                  << std::endl;
+
+        std::cout << "FastAD adj_buf bytesize: "
+                  << ab_size
+                  << std::endl;
+
+        std::cout << "FastAD expr bytesize: "
+                  << e_size
+                  << std::endl;
+
+        std::cout << "FastAD total bytesize: "
+                  << vb_size + ab_size + e_size
+                  << std::endl;
     }
 
     // double (baseline)
