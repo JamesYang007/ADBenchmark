@@ -49,7 +49,7 @@ void adolc_gradient(const F& f,
 
 template <class F>
 inline void cppad_gradient(const F& f,
-                           Eigen::VectorXd& x,
+                           const Eigen::VectorXd& x,
                            double& fx,
                            Eigen::VectorXd& grad_fx) 
 {

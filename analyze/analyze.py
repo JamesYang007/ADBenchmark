@@ -9,6 +9,7 @@ csvfiles = [f for f in os.listdir(csvpath)
                    f.endswith('_eval.csv')]
 
 def analyze(path, name):
+    print(path)
     df = pd.read_csv(path)
     df.set_index('N', inplace=True)
     fastad_col = df['fastad']
