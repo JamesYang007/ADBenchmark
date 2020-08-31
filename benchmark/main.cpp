@@ -7,6 +7,7 @@
 #include <matrix_product.hpp>
 #include <normal_log_pdf.hpp>
 #include <regression.hpp>
+#include <stochastic_volatility.hpp>
 #include <testpack.hpp>
 
 int main(int argc, char* argv[])
@@ -20,10 +21,10 @@ int main(int argc, char* argv[])
     std::cout << "Number of iterations: " << n_iter << std::endl;
 
     std::unordered_map<TestName, TestPack> packs({
-        {TestName::adept,  {"adept",  true,  n_iter}},
-        {TestName::adolc,  {"adolc",  true,  n_iter}},
-        {TestName::cppad,  {"cppad",  true,  n_iter}},
-        {TestName::sacado, {"sacado", true,  n_iter}},
+        {TestName::adept,  {"adept",  false,  n_iter}},
+        {TestName::adolc,  {"adolc",  false,  n_iter}},
+        {TestName::cppad,  {"cppad",  false,  n_iter}},
+        {TestName::sacado, {"sacado", false,  n_iter}},
         {TestName::stan,   {"stan",   true,  n_iter}},
         {TestName::fastad, {"fastad", true,  n_iter}},
     });
@@ -39,6 +40,7 @@ int main(int argc, char* argv[])
     //adb::run_test(adb::MatrixProductFunc(), packs, 64 * 1024);
     //adb::run_test(adb::NormalLogPdfFunc(), packs);
     //adb::run_test(adb::RegressionFunc(), packs);
+    adb::run_test(adb::StochasticVolatilityFunc(), packs);
 
     return 0;
 }

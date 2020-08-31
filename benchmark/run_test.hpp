@@ -126,8 +126,9 @@ inline void time_gradients(const F& f,
     }
 
     // double (baseline)
+    size_t double_iter = 10000;
     sw.start();
-    for (int i = 0; i < 10000; ++i) {
+    for (int i = 0; i < double_iter; ++i) {
         double_gradient(f, x, fx, grad_fx);
     }
     sw.stop();
@@ -136,7 +137,7 @@ inline void time_gradients(const F& f,
     // print the timings by iterating the unordered_map
     print_results(os, packs);
 
-    os << ',' << sw.elapsed() / 10000;
+    os << ',' << sw.elapsed() / double_iter;
     os << '\n';
 }
 

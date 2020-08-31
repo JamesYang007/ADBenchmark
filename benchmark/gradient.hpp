@@ -97,7 +97,7 @@ inline void fastad_gradient(ExprType& expr,
 
 template <class F>
 inline void double_gradient(const F& f,
-                            const Eigen::VectorXd& x,
+                            Eigen::VectorXd& x,
                             double& fx,
                             Eigen::VectorXd&)
 {
