@@ -1,6 +1,7 @@
 # AD Benchmark
 
 This is a repository dedicated to benchmarking automatic differentiation libraries for research purposes.
+This benchmark has only been tested on MacOS Catalina.
 
 ## Installation
 
