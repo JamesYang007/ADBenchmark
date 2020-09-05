@@ -125,7 +125,7 @@ struct StochasticVolatilityFunc
         h = h_std.array() * sigma;
         h[0] /= std::sqrt(1. - phi * phi);
         h.array() += mu;
-        for (size_t i = 0; i < N; ++i) {
+        for (size_t i = 1; i < N; ++i) {
             h[i] += phi * (h[i-1] - mu);
         }
 

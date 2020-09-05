@@ -46,9 +46,10 @@ inline void time_gradients(const F& f,
     // Adept
     auto& adept_pack = packs.at(adb::TestName::adept);
     if (adept_pack.run) {
+        adept::aVector x_ad(x.size());
         sw.start();
         for (int i = 0; i < adept_pack.n_iter; ++i) {
-            adept_gradient(f, x, fx, grad_fx);
+            adept_gradient(f, x, x_ad, fx, grad_fx);
         }
         sw.stop();
         check_gradient(grad_fx, expected, adept_pack.name);
@@ -58,9 +59,10 @@ inline void time_gradients(const F& f,
     // ADOLC
     auto& adolc_pack = packs.at(adb::TestName::adolc);
     if (adolc_pack.run) {
+        Eigen::Matrix<adouble, Eigen::Dynamic, 1> x_ad(x.size());
         sw.start();
         for (int i = 0; i < adolc_pack.n_iter; ++i) {
-            adolc_gradient(f, x, fx, grad_fx);
+            adolc_gradient(f, x, x_ad, fx, grad_fx);
         }
         sw.stop();
         check_gradient(grad_fx, expected, adolc_pack.name);
@@ -70,9 +72,10 @@ inline void time_gradients(const F& f,
     // CppAD
     auto& cppad_pack = packs.at(adb::TestName::cppad);
     if (cppad_pack.run) {
+        Eigen::Matrix<CppAD::AD<double>, Eigen::Dynamic, 1> x_ad(x.size());
         sw.start();
         for (int i = 0; i < cppad_pack.n_iter; ++i) {
-            cppad_gradient(f, x, fx, grad_fx);
+            cppad_gradient(f, x, x_ad, fx, grad_fx);
         }
         sw.stop();
         check_gradient(grad_fx, expected, cppad_pack.name);
@@ -82,9 +85,10 @@ inline void time_gradients(const F& f,
     // Sacado
     auto& sacado_pack = packs.at(adb::TestName::sacado);
     if (sacado_pack.run) {
+        Eigen::Matrix<Sacado::Rad::ADvar<double>, Eigen::Dynamic, 1> x_ad(x.size());
         sw.start();
         for (int i = 0; i < sacado_pack.n_iter; ++i) {
-            sacado_gradient(f, x, fx, grad_fx);
+            sacado_gradient(f, x, x_ad, fx, grad_fx);
         }
         sw.stop();
         check_gradient(grad_fx, expected, sacado_pack.name);

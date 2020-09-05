@@ -18,11 +18,7 @@ struct ProdFunc
     template <class T>
     T operator()(const Eigen::Matrix<T, Eigen::Dynamic, 1>& x) const
     {
-        T product_x = 1;
-        for (int i = 0; i < x.size(); ++i) {
-            product_x *= x(i);
-        }
-        return product_x;
+        return x.prod();
     }
 
     adept::aReal operator()(const adept::aVector& x) const
@@ -30,15 +26,10 @@ struct ProdFunc
         return adept::product(x);
     }
 
-    template <class T, class S>
-    auto operator()(ad::VarView<T, S>& x) const
+    template <class T>
+    auto operator()(ad::VarView<T, ad::vec>& x) const
     {
         return ad::prod(x);
-    }
-
-    double operator()(const Eigen::VectorXd& x) const
-    {
-        return x.prod();
     }
 
     void derivative(const Eigen::VectorXd& x,

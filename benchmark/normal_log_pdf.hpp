@@ -52,20 +52,8 @@ struct NormalLogPdfFunc
     T normal_log_density(const Eigen::Matrix<T, Eigen::Dynamic, 1>& y,
                          const T& mu, 
                          const T& sigma) const {
-        T lp = 0;
-        T neg_log_sigma = -log(sigma);
-        for (int i = 0; i < y.size(); ++i) {
-            T z = (y(i) - mu) / sigma;
-            lp += neg_log_sigma - 0.5 * z * z;
-        }
-        return lp;
-    }
-
-    double normal_log_density(const Eigen::VectorXd& y,
-                              double mu, 
-                              double sigma) const {
-        double z_sq = (y.array() - mu).matrix().squaredNorm() / (sigma * sigma);
-        return -0.5 * z_sq - std::log(sigma);
+        T z_sq = (y.array() - mu).matrix().squaredNorm() / (sigma * sigma);
+        return -0.5 * z_sq - (y.size() * log(sigma));
     }
 
     void derivative(const Eigen::VectorXd& x,

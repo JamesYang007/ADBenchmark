@@ -14,12 +14,12 @@ namespace adb {
 template <class F>
 inline void adept_gradient(const F& f,
                            Eigen::VectorXd& x,
+                           adept::aVector& x_ad,
                            double& fx,
                            Eigen::VectorXd& grad_fx) 
 {
-    adept::aVector x_ad(x.size());
     for (int i = 0; i < x.size(); ++i) {
-        x_ad[i] = x(i);
+        x_ad[i].set_value(x(i));
     }
     adept::active_stack()->new_recording();
     adept::aReal fx_ad = f(x_ad);
@@ -34,10 +34,10 @@ inline void adept_gradient(const F& f,
 template <typename F>
 void adolc_gradient(const F& f,
                     const Eigen::VectorXd& x,
+                    Eigen::Matrix<adouble, Eigen::Dynamic, 1>& x_ad,
                     double& fx,
                     Eigen::VectorXd& grad_fx) {
     trace_on(1);
-    Eigen::Matrix<adouble, Eigen::Dynamic, 1> x_ad(x.size());
     for (int n = 0; n < x.size(); ++n) {
         x_ad(n) <<= x(n);
     }
@@ -50,10 +50,10 @@ void adolc_gradient(const F& f,
 template <class F>
 inline void cppad_gradient(const F& f,
                            const Eigen::VectorXd& x,
+                           Eigen::Matrix<CppAD::AD<double>, Eigen::Dynamic, 1>& x_ad,
                            double& fx,
                            Eigen::VectorXd& grad_fx) 
 {
-    Eigen::Matrix<CppAD::AD<double>, Eigen::Dynamic, 1> x_ad(x.size());
     for (int n = 0; n < x.size(); ++n) {
         x_ad(n) = x[n];
     }
@@ -70,10 +70,10 @@ inline void cppad_gradient(const F& f,
 template <typename F>
 void sacado_gradient(const F& f,
                      const Eigen::VectorXd& x,
+                     Eigen::Matrix<Sacado::Rad::ADvar<double>, Eigen::Dynamic, 1>& x_ad,
                      double& fx,
                      Eigen::VectorXd& grad_fx) 
 {
-    Eigen::Matrix<Sacado::Rad::ADvar<double>, Eigen::Dynamic, 1> x_ad(x.size());
     for (int n = 0; n < x.size(); ++n) {
         x_ad(n) = x[n];
     }

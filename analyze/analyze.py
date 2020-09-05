@@ -7,6 +7,7 @@ csvpath = '../build/benchmark'
 csvfiles = [f for f in os.listdir(csvpath)
                 if os.path.isfile(os.path.join(csvpath, f)) and
                    f.endswith('_eval.csv')]
+plt.rcParams["font.size"] = "12"
 
 def analyze(path, name):
     print(path)
@@ -22,7 +23,7 @@ def analyze(path, name):
                    xlabel='N (input size)',
                    ylabel='Avg Time / FastAD Avg Time',
                    title=name,
-                   figsize=(10,8))
+                   figsize=(8,6))
     axes.set_xscale('log', base=2)
     axes.set_yscale('log', base=2)
     plt.savefig(os.path.join(figpath, name + '_fig.png'))

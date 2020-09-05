@@ -14,11 +14,7 @@ struct SumFunc
     template <class T>
     T operator()(const Eigen::Matrix<T, Eigen::Dynamic, 1>& x) const
     {
-        T sum_x = 0;
-        for (int i = 0; i < x.size(); ++i) {
-            sum_x += x(i);
-        }
-        return sum_x;
+        return x.sum();
     }
 
     adept::aReal operator()(const adept::aVector& x) const
@@ -31,15 +27,10 @@ struct SumFunc
         return stan::math::sum(x);
     }
 
-    template <class T, class S>
-    auto operator()(ad::VarView<T, S>& x) const
+    template <class T>
+    auto operator()(ad::VarView<T, ad::vec>& x) const
     {
         return ad::sum(x);
-    }
-
-    double operator()(const Eigen::VectorXd& x) const
-    {
-        return x.sum();
     }
 
     void derivative(const Eigen::VectorXd& x,
