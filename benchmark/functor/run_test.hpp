@@ -3,26 +3,14 @@
 #include <fstream>
 #include <string>
 #include <unordered_map>
-#include <result.hpp>
-#include <stopwatch.hpp>
 #include <gradient.hpp>
-#include <Eigen/Dense>
-#include <stan/math.hpp>
+#include <adolc/adouble.h>
+#include <adolc/taping.h>
+#include <stan/math/rev/functor/gradient.hpp>
 #include <adept.h>
 #include <testpack.hpp>
 
 namespace adb {
-
-inline void check_gradient(const Eigen::VectorXd& actual,
-                           const Eigen::VectorXd& expected,
-                           const std::string& name)
-{
-    auto diff = (actual.array() - expected.array()).abs();
-    if ((actual.array() != expected.array()).any()) {
-        std::cerr << "WARNING (" << name << "): result not identical" << std::endl;
-        std::cerr << "Max abs diff: " << diff.maxCoeff() << std::endl;
-    }
-}
 
 // Computes average time for differentiating f for each library
 template <class F>
@@ -60,9 +48,16 @@ inline void time_gradients(const F& f,
     auto& adolc_pack = packs.at(adb::TestName::adolc);
     if (adolc_pack.run) {
         Eigen::Matrix<adouble, Eigen::Dynamic, 1> x_ad(x.size());
+        trace_on(1);
+        for (int n = 0; n < x.size(); ++n) {
+            x_ad(n) <<= x(n);
+        }
+        adouble y = f(x_ad);
+        y >>= fx;
+        trace_off();
         sw.start();
         for (int i = 0; i < adolc_pack.n_iter; ++i) {
-            adolc_gradient(f, x, x_ad, fx, grad_fx);
+            adolc_gradient(x, fx, grad_fx);
         }
         sw.stop();
         check_gradient(grad_fx, expected, adolc_pack.name);
@@ -73,9 +68,15 @@ inline void time_gradients(const F& f,
     auto& cppad_pack = packs.at(adb::TestName::cppad);
     if (cppad_pack.run) {
         Eigen::Matrix<CppAD::AD<double>, Eigen::Dynamic, 1> x_ad(x.size());
+        CppAD::Independent(x_ad);
+        Eigen::Matrix<CppAD::AD<double>, Eigen::Dynamic, 1> y(1);
+        y[0] = f(x_ad);
+        CppAD::ADFun<double> g(x_ad, y);
+        Eigen::VectorXd w(1);
+        w(0) = 1.;
         sw.start();
         for (int i = 0; i < cppad_pack.n_iter; ++i) {
-            cppad_gradient(f, x, x_ad, fx, grad_fx);
+            cppad_gradient(w, g, x, fx, grad_fx);
         }
         sw.stop();
         check_gradient(grad_fx, expected, cppad_pack.name);
@@ -93,61 +94,6 @@ inline void time_gradients(const F& f,
         sw.stop();
         check_gradient(grad_fx, expected, sacado_pack.name);
         sacado_pack.time = sw.elapsed() / sacado_pack.n_iter;
-    }
-
-    // STAN
-    auto& stan_pack = packs.at(adb::TestName::stan);
-    if (stan_pack.run) {
-        sw.start();
-        for (int i = 0; i < stan_pack.n_iter; ++i) {
-            stan::math::gradient(f, x, fx, grad_fx);
-        }
-        sw.stop();
-        check_gradient(grad_fx, expected, stan_pack.name);
-        stan_pack.time = sw.elapsed() / stan_pack.n_iter;
-
-    }
-
-    // FastAD
-    auto& fastad_pack = packs.at(adb::TestName::fastad);
-    if (fastad_pack.run) {
-        Eigen::VectorXd val_buf;
-        Eigen::VectorXd adj_buf;
-        ad::VarView<double, ad::vec> fastad_x_ad(x.data(),
-                                                 grad_fx.data(),
-                                                 x.size());
-        auto expr = f(fastad_x_ad);
-        auto size_pack = expr.bind_cache_size();
-        val_buf.resize(size_pack(0));
-        adj_buf.resize(size_pack(1));
-        expr.bind_cache({val_buf.data(), adj_buf.data()});
-        sw.start();
-        for (int i = 0; i < fastad_pack.n_iter; ++i) {
-            fastad_gradient(expr, fx, grad_fx);
-        }
-        sw.stop();
-        check_gradient(grad_fx, expected, fastad_pack.name);
-        fastad_pack.time = sw.elapsed() / fastad_pack.n_iter;
-
-        size_t vb_size = val_buf.size() * sizeof(double);
-        size_t ab_size = adj_buf.size() * sizeof(double);
-        size_t e_size = sizeof(expr);
-
-        std::cout << "FastAD val_buf bytesize: "
-                  << vb_size
-                  << std::endl;
-
-        std::cout << "FastAD adj_buf bytesize: "
-                  << ab_size
-                  << std::endl;
-
-        std::cout << "FastAD expr bytesize: "
-                  << e_size
-                  << std::endl;
-
-        std::cout << "FastAD total bytesize: "
-                  << vb_size + ab_size + e_size
-                  << std::endl;
     }
 
     // double (baseline)

@@ -3,12 +3,30 @@
 mkdir -p lib
 cd lib
 
+gbench="benchmark"
 adept="adept-2.0.8"
 adolc="adolc"
 cppad="cppad"
 sacado="Trilinos"
 stan="stan-dev-math"
 fastad="FastAD"
+
+# setup GBench
+if [ ! -d "$gbench" ]; then
+    git clone https://github.com/google/benchmark.git $gbench
+    git clone https://github.com/google/googletest.git $gbench/googletest
+    cd benchmark
+    cmake -E make_directory "build"
+    cmake -E chdir "build" cmake \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DCMAKE_INSTALL_PREFIX=. \
+        -DCMAKE_CXX_COMPILER="g++-10" \
+        -DBENCHMARK_ENABLE_GTEST_TESTS=OFF \
+        ../
+    cmake --build "build" --config Release
+    cmake --build "build" --config Release --target install
+    cd ..
+fi
 
 # setup Adept2.0.8
 if [ ! -d "$adept" ]; then
@@ -95,4 +113,3 @@ if [ ! -d "$fastad" ]; then
     ninja install
     cd ../../.. # back in lib
 fi
-
