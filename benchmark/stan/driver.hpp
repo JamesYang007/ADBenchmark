@@ -11,16 +11,18 @@ static void BM_stan(benchmark::State& state)
     size_t N = state.range(0);
 
     Eigen::VectorXd x(N);
-    Eigen::VectorXd grad_fx(N);
-    double fx;
     f.fill(x);
+    double fx;
+    Eigen::VectorXd grad_fx(x.size());
+
+    state.counters["N"] = x.size();
 
     for (auto _ : state) {
         stan::math::gradient(f, x, fx, grad_fx);
     }
 
     // sanity-check that output gradient is good
-    Eigen::VectorXd expected;
+    Eigen::VectorXd expected(grad_fx.size());
     f.derivative(x, expected);
     check_gradient(grad_fx, expected, "stan-" + f.name());
 }

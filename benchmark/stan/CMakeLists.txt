@@ -29,6 +29,7 @@ function(add_stan_executable name)
         ${PROJECT_SOURCE_DIR}/lib/stan-dev-math/lib/sundials_5.2.0/include)
     target_link_libraries(${exec}
         Eigen3::Eigen
+        FastAD::FastAD
         ${TBB_LIB}
         ${TBBMALLOC_LIB}
         ${TBBMALLOC_PROXY_LIB}
@@ -37,12 +38,12 @@ function(add_stan_executable name)
         pthread)
 endfunction()
 
-#add_stan_executable("log_sum_exp")
-#add_stan_executable("matrix_product")
-#add_stan_executable("normal_log_pdf")
-#add_stan_executable("prod")
-#add_stan_executable("prod_iter")
-#add_stan_executable("regression")
-#add_stan_executable("stochastic_volatility")
+add_stan_executable("log_sum_exp")
+add_stan_executable("matrix_product")
+add_stan_executable("normal_log_pdf")
+add_stan_executable("prod")
+add_stan_executable("prod_iter")
+add_stan_executable("regression")
+add_stan_executable("stochastic_volatility")
 add_stan_executable("sum")
-#add_stan_executable("sum_iter")
+add_stan_executable("sum_iter")

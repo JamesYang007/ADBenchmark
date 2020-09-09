@@ -12,10 +12,9 @@ void BM_fastad(benchmark::State& state)
     size_t N = state.range(0);
 
     Eigen::VectorXd x(N);
-    Eigen::VectorXd grad_fx(N);
     double fx = 0;
-
     f.fill(x);
+    Eigen::VectorXd grad_fx(x.size());
 
     ad::VarView<double, ad::vec> x_ad(x.data(), 
                                       grad_fx.data(), 
@@ -28,13 +27,15 @@ void BM_fastad(benchmark::State& state)
     Eigen::VectorXd adj_buf(size_pack(1));
     expr.bind_cache({val_buf.data(), adj_buf.data()});
 
+    state.counters["N"] = x.size();
+
     for (auto _ : state) {
         grad_fx.setZero();
         fx = ad::autodiff(expr);
     }
 
     // sanity-check that output gradient is good
-    Eigen::VectorXd expected;
+    Eigen::VectorXd expected(grad_fx.size());
     f.derivative(x, expected);
     check_gradient(grad_fx, expected, "fastad-" + f.name());
 

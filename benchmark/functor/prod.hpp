@@ -1,13 +1,17 @@
 #pragma once
 #include <string>
-#include <Eigen/Dense>
-//#include <adept.h>
-//#include <adept_arrays.h>
+#include <functor/functor_base.hpp>
 
 namespace adb {
 
-struct ProdFuncBase
+struct ProdFuncBase: FuncBase
 {
+    template <class T>
+    T operator()(const Eigen::Matrix<T, Eigen::Dynamic, 1>& x) const
+    {
+        return x.prod();
+    }
+
     void derivative(const Eigen::VectorXd& x,
                     Eigen::VectorXd& grad) const
     {
@@ -22,26 +26,6 @@ struct ProdFuncBase
     }
 
     std::string name() const { return "prod"; }
-
-    void fill(Eigen::VectorXd& x) const {
-        double val = std::pow(1e10, 1.0 / x.size());
-        x.array() = val;
-    }
 };
-
-//struct ProdFunc
-//{
-//    template <class T>
-//    T operator()(const Eigen::Matrix<T, Eigen::Dynamic, 1>& x) const
-//    {
-//        return x.prod();
-//    }
-//
-//    adept::aReal operator()(const adept::aVector& x) const
-//    {
-//        return adept::product(x);
-//    }
-//
-//};
 
 } // namespace adb

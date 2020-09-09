@@ -1,8 +1,3 @@
-# Find FastAD
-find_package(FastAD CONFIG REQUIRED
-    HINTS ${PROJECT_SOURCE_DIR}/lib/FastAD/build)
-message(STATUS "Found FastAD config at: ${FastAD_DIR}")
-
 # Function macro to easily create executables for each test
 function(add_fastad_executable name)
     set(exec "fastad_${name}")
