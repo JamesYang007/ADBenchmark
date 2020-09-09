@@ -29,11 +29,6 @@ delete the folder associated with that library in `lib` and run the script again
 We have not provided scripts for the following changes and we ask the users to manually make these changes:
 - Add `math::` in front of `apply` in `lib/stan-dev-math/stan/math/rev/functor/adj_jac_apply.hpp` line `513`.
   Compiling with C++17 standard raises error due to ambiguity with `std::apply`.
-- Open `benchmark/main.cpp` and comment out all tests except one that you want to test.
-  The `std::unordered_map` object stores the configuration for the run.
-  The "value" is a struct that contains the name, boolean indicating whether to run this library or not,
-  and the number of iterations it should run to average out the time.
-  Feel free to change any of these settings.
 
 To build and run benchmarks:
 ```
@@ -43,34 +38,15 @@ cd build/benchmark
 ```
 If GCC10 is not available, just replace `gcc-10` and `g++-10` with the correct alias for the available version
 (e.g. `gcc-8` and `g++-8` if GCC8 is available).
-
-Running `./main` should generate `csv` files in the current directory for various tests.
-The format is the following:
-```
-N,libname1,libname2,...,libnameK
-n,t1,t2,...,tK
-...
-```
-where `N` represents the size of the input vector (ranging from `2^[0,...,14]`),
-`libnameI` represents the `I`th library,
-`n` is a particular size of the input vector,
-and `tI` is the average elapsed time for testing with `n` and `libnameI`.
-The header (first line of output) will be something like the following:
-```
-N,adept,adolc,cppad,sacado,stan,fastad,double
-```
+This will create directories for each library in the current directory
+and build each test as a separate executable in these directories.
 
 We wrote a Python script in `analyze` called `analyze.py` that 
-scrapes `build/benchmark` directory for all `_eval.csv` files,
-plots the results, and saves the plots in `docs/figs`.
-The user can directly follow these commands:
+scrapes `build/benchmark` directory for all tests in each library,
+runs the benchmark programs, plots the relative time against `FastAD`, 
+and saves the absolute times (in nanoseconds) and plots for each test in `docs/data` and `docs/figs`, respectively.
+The user can directly follow these commands in the project root directory:
 ```
 cd analyze
 python3 analyze.py
-```
-
-To both build, run the benchmark program, and create the plots,
-use the prepared `run.sh` shell script:
-```
-./run.sh
 ```
