@@ -65,6 +65,5 @@ def run(testname):
     return df
 
 # For each test, run and plot
-#for test in tests:
-test = 'regression'
-plot_test(run(test), test)
+for test in tests:
+    plot_test(run(test), test)
