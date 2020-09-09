@@ -6,6 +6,8 @@ namespace adb {
 
 struct ProdFuncBase: FuncBase
 {
+    using base_t = FuncBase;
+
     template <class T>
     T operator()(const Eigen::Matrix<T, Eigen::Dynamic, 1>& x) const
     {
@@ -26,6 +28,12 @@ struct ProdFuncBase: FuncBase
     }
 
     std::string name() const { return "prod"; }
+
+    void fill(Eigen::VectorXd& x) 
+    {
+        base_t::fill(x);
+        x.array() += 1.;
+    }
 };
 
 } // namespace adb
