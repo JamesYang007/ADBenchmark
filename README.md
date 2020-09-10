@@ -37,14 +37,15 @@ To build benchmarks:
 ```
 If GCC10 is not available, just replace `gcc-10` and `g++-10` with the correct alias for the available version
 (e.g. `gcc-8` and `g++-8` if GCC8 is available).
-This will create directories for each library in the current directory
+This will create directories for each library in `build/benchmark`
 and build each test as a separate executable in these directories.
 __Note: for the safest build results, use the same compiler that you used in setup.__
 
 We wrote a Python script in `analyze` called `analyze.py` that 
-scrapes `build/benchmark` directory for all tests in each library,
-runs the benchmark programs, plots the relative time against `FastAD`, 
-and saves the absolute times (in nanoseconds) and the plots for each test in `docs/data` and `docs/figs`, respectively.
+scrapes `build/benchmark` directory for all tests in each library directory,
+runs the benchmark programs,
+and saves the absolute times (in nanoseconds) and 
+the plots of relative time against FastAD for each test in `docs/data` and `docs/figs`, respectively.
 To run the script:
 ```
 cd analyze
