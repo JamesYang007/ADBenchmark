@@ -20,8 +20,11 @@ tests = ['log_sum_exp', 'matrix_product', 'normal_log_pdf', 'prod', 'prod_iter',
 plt.rcParams["font.size"] = "12"
 
 # Creates path to test for lib
-def bin_path(libname, testname):
-    return os.path.join(libpath, libname, ''.join([libname, '_', testname]))
+def lib_path(libname):
+    return os.path.join(libpath, libname)
+
+def bin_name(libname, testname):
+    return ''.join([libname, '_', testname])
 
 # Plot result of test
 def plot_test(df, name):
@@ -41,9 +44,17 @@ def plot_test(df, name):
 def run(testname):
     df = pd.DataFrame()
 
+    # save current working directory
+    cur_path = os.getcwd()
+
     # run test for each lib and save times
     for lib in libs:
-        path = bin_path(lib, testname)
+
+        # change directory to library
+        # some libraries may require this to read configuration file
+        os.chdir(lib_path(lib))
+
+        path = os.path.join('.', bin_name(lib, testname))
         print(path)
 
         # run and get output from each
@@ -52,6 +63,9 @@ def run(testname):
         df_lib = pd.read_csv(data, sep=',')
         df_lib.set_index('N', inplace=True)
         df[lib] = df_lib['real_time']
+
+        # change back to current working directory
+        os.chdir(cur_path)
 
     # save absolute time
     data_path = os.path.join(datapath, testname + ".csv")

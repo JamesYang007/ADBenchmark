@@ -30,3 +30,10 @@ add_adolc_executable("regression")
 add_adolc_executable("stochastic_volatility")
 add_adolc_executable("sum")
 add_adolc_executable("sum_iter")
+
+# ADOLC requires a .adolcrc to be copied where executables are
+add_custom_target(COPYADOLCRC
+    ALL
+    ${CMAKE_COMMAND} -E copy
+    ${CMAKE_CURRENT_SOURCE_DIR}/.adolcrc
+    ${CMAKE_CURRENT_BINARY_DIR}/.adolcrc)
